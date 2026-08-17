@@ -1,0 +1,40 @@
+name: Send Daily Stock Brief Email
+
+on:
+  schedule:
+    - cron: '20 23 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  send-email:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Determine today's report file (JST)
+        id: vars
+        run: |
+          echo "date=$(TZ=Asia/Tokyo date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Check report exists
+        id: check
+        run: |
+          FILE="reports/${{ steps.vars.outputs.date }}.md"
+          if [ -f "$FILE" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Send email
+        if: steps.check.outputs.exists == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.GMAIL_USERNAME }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: "本日の株式テーマ・銘柄ブリーフ (${{ steps.vars.outputs.date }})"
+          to: ${{ secrets.GMAIL_USERNAME }}
+          from: 株式ブリーフBot <${{ secrets.GMAIL_USERNAME }}>
+          body_file: reports/${{ steps.vars.outputs.date }}.md
