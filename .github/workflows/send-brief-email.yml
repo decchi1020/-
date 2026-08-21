@@ -1,8 +1,10 @@
 name: Send Daily Stock Brief Email
 
+# 自動送信は停止中。手動実行 (workflow_dispatch) のみ。
+# 毎朝の自動メール送信を再開したい場合は、下の schedule 指定のコメントを外す。
 on:
-  schedule:
-    - cron: '20 23 * * *'
+  # schedule:
+  #   - cron: '20 23 * * *'
   workflow_dispatch: {}
 
 jobs:
